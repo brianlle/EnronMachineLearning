@@ -1,8 +1,6 @@
 
 # coding: utf-8
 
-# In[1]:
-
 import sys
 import pickle
 from nltk.stem.snowball import SnowballStemmer
@@ -11,9 +9,6 @@ import string
 import numpy as np
 from sklearn import cross_validation
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-
-# In[2]:
 
 def parseOutText(f):
     '''
@@ -54,12 +49,8 @@ def parseOutText(f):
         
         words = words[:-1]
 
-
-
     return words
 
-
-# In[3]:
 
 def predict_emails(email, word_data, author_data, vectorizer, classifier):
     
@@ -87,14 +78,13 @@ def predict_emails(email, word_data, author_data, vectorizer, classifier):
     return [poi_predictions, total_emails]
 
 
-# In[4]:
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
 
-# In[5]:
+# find email addresses of persons of interest
 
 poiEmails = []
 
@@ -103,7 +93,7 @@ for person in data_dict:
         poiEmails.append(data_dict[person]['email_address'])
 
 
-# In[6]:
+# find email addresses of non persons of interest
 
 notPoiEmails = []
 
@@ -113,11 +103,14 @@ for person in data_dict:
             notPoiEmails.append(data_dict[person]['email_address'])
 
 
-# In[7]:
+# using email address data, navigate to file containing email paths by email address
+# and store to lists
 
 poiEmailPaths = []
 notPoiEmailPaths = []
 author_data = []
+
+#using email paths, find emails and store text for both persons of interest and non persons of interest
 
 for email in poiEmails:
     path = 'emails_by_address/from_' + email + '.txt'
@@ -133,7 +126,6 @@ for email in poiEmails:
     except IOError:
         continue
     
-    
 for email in notPoiEmails:
     path = 'emails_by_address/from_' + email + '.txt'
     try:
@@ -148,14 +140,11 @@ for email in notPoiEmails:
     except IOError:
         continue
     
-
-
-# In[8]:
+# use function parseOutText() on emails to stem words and then store to word_data
+# store poi status to poi_data
 
 poi_data = []
 word_data = []
-
-temp_counter = 0
 
 for poi_status, from_person in [(True, poiEmailPaths), (False, notPoiEmailPaths)]:
     for path in from_person:
@@ -172,11 +161,10 @@ for poi_status, from_person in [(True, poiEmailPaths), (False, notPoiEmailPaths)
         poi_data.append(poi_status) #mark if from poi or not from poi
             
             
-            email.close()
+        email.close()
 
-
-# In[25]:
-
+# remove signature words that had an importance > 0.20 in tfidf vectorization
+        
 replace_list = ['ddelainnsf', 'delaineyhouect','delainey','ect','eea','lavoratocorpenronenron','ena','david','dave']
 
 modified_word_data = []
@@ -187,23 +175,22 @@ for word in word_data:
     modified_word_data.append(temp_word.replace('  ', ' '))  #replace double spaces with single space
 
 
-# In[26]:
+#split data into training set and testing set for validation
 
 features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(modified_word_data, poi_data, test_size=0.1, random_state=42)
+
+#run text data through tfidf vectorizer
 
 vectorizer = TfidfVectorizer(sublinear_tf=True, max_df=0.5,
                              stop_words='english')
 features_train = vectorizer.fit_transform(features_train)
 features_test  = vectorizer.transform(features_test).toarray()
 
-
-# In[27]:
+#using vectorized text data and poi_data labels, create decision tree model to predict if a person of interest
+#wrote an email
 
 clf = tree.DecisionTreeClassifier()
 clf.fit(features_train, labels_train)
-
-
-# In[24]:
 
 email_prediction_data = {}
 
@@ -214,7 +201,7 @@ for email in notPoiEmails:
     email_prediction_data[email] = predict_emails(email, modified_word_data, author_data, vectorizer, clf)
 
 
-# In[ ]:
+# store data as pickle files to be accessed by poi_id.py
 
 pickle.dump( email_prediction_data, open("your_author_prediction_data.pkl", "w") )
 pickle.dump( word_data, open("your_word_data.pkl", "w") )
