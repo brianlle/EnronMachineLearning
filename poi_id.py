@@ -1,7 +1,6 @@
 
 # coding: utf-8
 
-# In[1]:
 
 import sys
 import pickle
@@ -16,7 +15,6 @@ from sklearn.cross_validation import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
 
-# In[2]:
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -26,8 +24,6 @@ with open("final_project_dataset.pkl", "r") as data_file:
 with open("your_author_prediction_data.pkl", "r") as data_file:
     email_prediction_data = pickle.load(data_file)
 
-
-# In[3]:
 
 #add new feature data to data_dict
 
@@ -41,14 +37,11 @@ for person in data_dict:
         data_dict[person]['email_predicted_proportion'] = 'NaN'   #for those with no email address listed
 
 
-# In[4]:
-
-### Task 2: Remove outliers
+#remove outlier
 
 data_dict.pop('TOTAL')
 
-
-# In[5]:
+#choose which features to be included in classification
 
 features_list = ['poi','salary', 'bonus',
                 'from_poi_to_this_person', 'from_this_person_to_poi',
@@ -65,13 +58,6 @@ features_train, features_test, labels_train, labels_test =     train_test_split(
 
 clf = RandomForestClassifier(n_estimators = 100, criterion = 'entropy')
 
-
-# In[6]:
+#store dataset and classifier for testing by tester.py
 
 dump_classifier_and_data(clf, my_dataset, features_list)
-
-
-# In[ ]:
-
-
-
